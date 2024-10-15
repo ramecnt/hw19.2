@@ -1,0 +1,25 @@
+{% extends 'catalog/base.html' %}
+{% load image_tag %}
+{% block content %}
+    <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+        <h1 class="display-4">{{ object.name|title }}</h1>
+    </div>
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-lg-12 col-md-6 col-sm-12">
+                {% if product.image %}
+                        {% image_tag product.image 300 300 %}
+                {% else %}
+                        <img src="https://media.naijahouses.com/banner_image/no-preview.jpg" width="300" height="200" class="img-fluid rounded-start"
+                             alt="No image available">
+                {% endif %}
+                <br>
+                Описание: {{ object.description }} <br>
+                Категория: {{ object.category }} <br>
+                Цена за шт: ₽ {{ object.price_per_unit }} <br>
+                Дата создания: {{ object.creation_date }} <br>
+                Последние изменения: {{ object.last_modification_date }} <br>
+            </div>
+        </div>
+    </div>
+{% endblock %}
