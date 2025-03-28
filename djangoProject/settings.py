@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'catalog',
+    'users',
 ]
 
 MIDDLEWARE = [
@@ -124,3 +125,15 @@ MEDIA_URL = '/media/'
 
 MEDIA_ROOT = BASE_DIR / 'media/'
 
+AUTH_USER_MODEL = 'users.User'
+LOGIN_REDIRECT_URL = '/contacts'
+LOGOUT_REDIRECT_URL = '/contacts'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 465
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = 'ilinkola263@gmail.com'
+EMAIL_HOST_PASSWORD = 'vatj lwjg szxp uylg'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

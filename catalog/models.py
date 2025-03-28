@@ -1,5 +1,7 @@
 from django.db import models
 
+from djangoProject import settings
+
 # Dictionary for fields that can be empty or null.
 NULLABLE = {'blank': True, 'null': True}
 
@@ -72,6 +74,7 @@ class Product(models.Model):
         price_per_unit (int): Price per unit of the product.
         creation_date (datetime): The date and time the product was created.
         last_modification_date (datetime): The date and time the product was last updated.
+        owner (User): The owner of the product.
     """
     name = models.CharField(max_length=100, verbose_name='название')
     description = models.TextField(verbose_name='описание')
@@ -80,6 +83,13 @@ class Product(models.Model):
     price_per_unit = models.IntegerField(verbose_name='цена за шт')
     creation_date = models.DateTimeField(auto_now_add=True, verbose_name='дата создания')
     last_modification_date = models.DateTimeField(auto_now=True, verbose_name='последние изменения')
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='products',
+        verbose_name="Владелец",
+        **NULLABLE
+    )
 
     def __str__(self):
         """Returns the product name."""

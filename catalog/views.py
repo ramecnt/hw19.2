@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.forms import inlineformset_factory
 from django.urls import reverse_lazy
 from pytils.translit import slugify
@@ -21,21 +22,20 @@ class ProductDetailView(DetailView):
     model = Product
 
 
-class ProductCreateView(CreateView):
+class ProductCreateView(LoginRequiredMixin, CreateView):
     """
     View for creating a new product.
     """
     model = Product
     form_class = ProductForm
+    success_url = reverse_lazy('catalog:product_list')
 
-    def get_success_url(self):
-        """
-        Redirect to the product detail page after successful creation.
-        """
-        return reverse_lazy('catalog:view_product', args=[self.kwargs.get('pk')])
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
 
 
-class ProductUpdateView(UpdateView):
+class ProductUpdateView(LoginRequiredMixin, UpdateView):
     """
     View for updating an existing product.
     """
@@ -66,21 +66,36 @@ class ProductUpdateView(UpdateView):
         """
         context_data = self.get_context_data()
         formset = context_data['formset']
-        if formset.is_valid() and form.is_valid():
-            self.object = form.save()
-            formset.instance = self.object
-            formset.save()
-            return super().form_valid(form)
-        else:
-            return self.render_to_response(self.get_context_data(form=form, formset=formset))
+        user = self.request.user
+        if self.object.owner == user:
+            if formset.is_valid() and form.is_valid():
+                self.object = form.save()
+                formset.instance = self.object
+                formset.save()
+                return super().form_valid(form)
+            else:
+                return self.render_to_response(self.get_context_data(form=form, formset=formset))
 
 
-class ProductDeleteView(DeleteView):
+class ProductDeleteView(LoginRequiredMixin, DeleteView):
     """
     View for deleting a product.
     """
     model = Product
     success_url = reverse_lazy('catalog:product_list')
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+
+        user = self.request.user
+
+        if self.object.owner == user:
+            return form
+
+    def form_valid(self, form):
+        user = self.request.user
+        if self.object.owner == user:
+            return super().form_valid(form)
 
 
 class ContactTemplate(TemplateView):
@@ -179,7 +194,6 @@ class BlogUpdateView(UpdateView):
 
 class BlogDeleteView(DeleteView):
     """
-    View for deleting a blog post.
     """
     model = Blog
     success_url = reverse_lazy('catalog:blog_list')
