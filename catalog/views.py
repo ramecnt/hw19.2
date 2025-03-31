@@ -1,5 +1,4 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.forms import inlineformset_factory
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.urls import reverse_lazy
 from pytils.translit import slugify
 
@@ -13,6 +12,13 @@ class ProductListView(ListView):
     View for listing all products.
     """
     model = Product
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        for product in context['product_list']:
+            context[product] = (product.owner == user) or user.groups.filter(name='manager').exists()
+        return context
 
 
 class ProductDetailView(DetailView):
@@ -35,12 +41,40 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class ProductUpdateView(LoginRequiredMixin, UpdateView):
+class ProductUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     """
     View for updating an existing product.
     """
     model = Product
     form_class = ProductForm
+    permission_required = [
+        'catalog.can_change_description',
+        'catalog.can_change_category',
+        'catalog.can_change_is_published'
+    ]
+
+    def has_permission(self):
+        user = self.request.user
+        product_owner = self.get_object().owner
+        if user == product_owner:
+            return True
+        if user.groups.filter(name='manager').exists():
+            return True
+        return False
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+
+        user = self.request.user
+
+        if self.object.owner == user:
+            return form
+
+        if user.groups.filter(name='manager').exists():
+            allowed_fields = ['description', 'category', 'is_published']
+            form.fields = {key: form.fields[key] for key in allowed_fields if key in form.fields}
+
+        return form
 
     def get_success_url(self):
         """
@@ -48,33 +82,17 @@ class ProductUpdateView(LoginRequiredMixin, UpdateView):
         """
         return reverse_lazy('catalog:view_product', args=[self.kwargs.get('pk')])
 
-    def get_context_data(self, **kwargs):
-        """
-        Add an inline formset for managing product versions to the context.
-        """
-        context_data = super().get_context_data(**kwargs)
-        ProductFormset = inlineformset_factory(Product, Version, VersionForm, extra=1)
-        if self.request.method == 'POST':
-            context_data['formset'] = ProductFormset(self.request.POST, instance=self.object)
-        else:
-            context_data['formset'] = ProductFormset(instance=self.object)
-        return context_data
-
-    def form_valid(self, form):
-        """
-        Validate both the product form and the inline formset before saving.
-        """
-        context_data = self.get_context_data()
-        formset = context_data['formset']
-        user = self.request.user
-        if self.object.owner == user:
-            if formset.is_valid() and form.is_valid():
-                self.object = form.save()
-                formset.instance = self.object
-                formset.save()
-                return super().form_valid(form)
-            else:
-                return self.render_to_response(self.get_context_data(form=form, formset=formset))
+    # def get_context_data(self, **kwargs):
+    #     """
+    #     Add an inline formset for managing product versions to the context.
+    #     """
+    #     context_data = super().get_context_data(**kwargs)
+    #     ProductFormset = inlineformset_factory(Product, Version, VersionForm, extra=1)
+    #     if self.request.method == 'POST':
+    #         context_data['formset'] = ProductFormset(self.request.POST, instance=self.object)
+    #     else:
+    #         context_data['formset'] = ProductFormset(instance=self.object)
+    #     return context_data
 
 
 class ProductDeleteView(LoginRequiredMixin, DeleteView):

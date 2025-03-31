@@ -28,9 +28,12 @@
                             <a href="{% url 'catalog:delete_product' object.id %}" target="_blank">
                                 <button type="button" class="btn btn-outline-primary">Удалить</button>
                             </a>
-                            <a href="{% url 'catalog:edit_product' object.id %}" target="_blank">
-                                <button type="button" class="btn btn-outline-primary">Редактировать</button>
-                            </a></div>
+                            {% if object %}
+                                <a href="{% url 'catalog:edit_product' object.id %}" target="_blank">
+                                    <button type="button" class="btn btn-outline-primary">Редактировать</button>
+                                </a>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             {% endfor %}
