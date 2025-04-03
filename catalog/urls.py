@@ -1,4 +1,5 @@
 from django.urls import path
+from django.views.decorators.cache import cache_page
 
 from catalog import views
 
@@ -13,7 +14,7 @@ urlpatterns = [
     path('products/', views.ProductListView.as_view(), name='product_list'),
 
     # URL pattern for viewing the details of a single product.
-    path('product/<int:pk>/', views.ProductDetailView.as_view(), name='view_product'),
+    path('product/<int:pk>/', cache_page(60)(views.ProductDetailView.as_view()), name='view_product'),
 
     # URL pattern for creating a new product.
     path('product/create/', views.ProductCreateView.as_view(), name='create_product'),

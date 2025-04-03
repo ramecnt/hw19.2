@@ -11,9 +11,12 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(BASE_DIR / '.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -139,4 +142,11 @@ EMAIL_HOST_USER = 'ilinkola263@gmail.com'
 EMAIL_HOST_PASSWORD = 'vatj lwjg szxp uylg'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-
+CACHE_ENABLED = os.getenv('CACHE_ENABLED', False) == True
+if CACHE_ENABLED:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": os.getenv('CACHE_LOCATION'),
+        }
+    }
