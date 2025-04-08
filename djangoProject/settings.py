@@ -22,10 +22,10 @@ load_dotenv(BASE_DIR / '.env')
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-$g&7l(t7fuz5p7y6i9%0jsc=a!m_l+f#=!a-5*smb67=u@8hci'
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG_ENABLED', False) == True
 
 ALLOWED_HOSTS = []
 
@@ -80,8 +80,8 @@ WSGI_APPLICATION = 'djangoProject.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'postgres',
-        'PORT': 5433,
+        'NAME': os.getenv("DATABASE_NAME"),
+        'PORT': os.getenv("DATABASE_PORT"),
     }
 }
 
@@ -138,8 +138,8 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 465
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
-EMAIL_HOST_USER = 'ilinkola263@gmail.com'
-EMAIL_HOST_PASSWORD = 'vatj lwjg szxp uylg'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_USER')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 CACHE_ENABLED = os.getenv('CACHE_ENABLED', False) == True
